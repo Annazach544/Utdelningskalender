@@ -67,11 +67,28 @@ while (true)
             Console.WriteLine("Det finns inga utdelningar ännu.");
         }
 
-        foreach (var dividend in dividends)
+        foreach (var dividend in dividends.OrderBy(dividend => dividend.PaymentDate))
         {
             decimal totalDividend = dividend.NumberOfShares * dividend.DividendPerShare;
             Console.WriteLine($"{dividend.CompanyName} | {dividend.PaymentDate:yyyy-MM-dd} | {totalDividend:F2} kr");
         }
+        if (dividends.Count > 0)
+    {
+    Console.WriteLine("\n=== SUMMA PER MÅNAD ===");
+
+    var months = dividends
+        .GroupBy(dividend => new { dividend.PaymentDate.Year, dividend.PaymentDate.Month })
+        .OrderBy(month => month.Key.Year)
+        .ThenBy(month => month.Key.Month);
+
+    foreach (var month in months)
+    {
+        decimal monthlyTotal = month.Sum(
+            dividend => dividend.NumberOfShares * dividend.DividendPerShare);
+
+        Console.WriteLine($"{month.Key.Year:D4}-{month.Key.Month:D2} | {monthlyTotal:F2} kr");
+    }
+    }
     }
     else if (choice == "3" || choice == null)
     {
