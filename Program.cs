@@ -7,8 +7,9 @@ while (true)
     Console.WriteLine("\n=== UTDELNINGSKALENDER ===");
     Console.WriteLine("1. Lägg till utdelning");
     Console.WriteLine("2. Visa utdelningar");
-    Console.WriteLine("3. Avsluta");
-    Console.Write("Välj (1–3): ");
+    Console.WriteLine("3. Ta bort utdelning");
+    Console.WriteLine("4. Avsluta");
+    Console.Write("Välj (1–4): ");
 
     var choice = Console.ReadLine();
 
@@ -65,6 +66,7 @@ while (true)
         if (dividends.Count == 0)
         {
             Console.WriteLine("Det finns inga utdelningar ännu.");
+            continue;
         }
 
         foreach (var dividend in dividends.OrderBy(dividend => dividend.PaymentDate))
@@ -72,30 +74,64 @@ while (true)
             decimal totalDividend = dividend.NumberOfShares * dividend.DividendPerShare;
             Console.WriteLine($"{dividend.CompanyName} | {dividend.PaymentDate:yyyy-MM-dd} | {totalDividend:F2} kr");
         }
-        if (dividends.Count > 0)
+
+        Console.WriteLine("\n=== SUMMA PER MÅNAD ===");
+
+        var months = dividends
+            .GroupBy(dividend => new { dividend.PaymentDate.Year, dividend.PaymentDate.Month })
+            .OrderBy(month => month.Key.Year)
+            .ThenBy(month => month.Key.Month);
+
+        foreach (var month in months)
+        {
+            decimal monthlyTotal = month.Sum(
+                dividend => dividend.NumberOfShares * dividend.DividendPerShare);
+
+            Console.WriteLine($"{month.Key.Year:D4}-{month.Key.Month:D2} | {monthlyTotal:F2} kr");
+        }
+    }
+    else if (choice == "3")
     {
-    Console.WriteLine("\n=== SUMMA PER MÅNAD ===");
+        if (dividends.Count == 0)
+        {
+            Console.WriteLine("Det finns inga utdelningar att ta bort.");
+            continue;
+        }
 
-    var months = dividends
-        .GroupBy(dividend => new { dividend.PaymentDate.Year, dividend.PaymentDate.Month })
-        .OrderBy(month => month.Key.Year)
-        .ThenBy(month => month.Key.Month);
+        var sortedDividends = dividends
+            .OrderBy(dividend => dividend.PaymentDate)
+            .ToList();
 
-    foreach (var month in months)
-    {
-        decimal monthlyTotal = month.Sum(
-            dividend => dividend.NumberOfShares * dividend.DividendPerShare);
+        for (int i = 0; i < sortedDividends.Count; i++)
+        {
+            var dividend = sortedDividends[i];
+            Console.WriteLine($"{i + 1}. {dividend.CompanyName} | {dividend.PaymentDate:yyyy-MM-dd}");
+        }
 
-        Console.WriteLine($"{month.Key.Year:D4}-{month.Key.Month:D2} | {monthlyTotal:F2} kr");
+        Console.Write("Ange numret på utdelningen du vill ta bort, eller 0 för att avbryta: ");
+
+        if (!int.TryParse(Console.ReadLine(), out int number)
+            || number < 0 || number > sortedDividends.Count)
+        {
+            Console.WriteLine("Ogiltigt nummer.");
+            continue;
+        }
+
+        if (number == 0)
+        {
+            continue;
+        }
+
+        var selectedDividend = sortedDividends[number - 1];
+        dividends.Remove(selectedDividend);
+        Console.WriteLine("Utdelningen har tagits bort.");
     }
-    }
-    }
-    else if (choice == "3" || choice == null)
+    else if (choice == "4" || choice == null)
     {
         break;
     }
     else
     {
-        Console.WriteLine("Välj 1, 2 eller 3.");
+        Console.WriteLine("Välj 1, 2, 3 eller 4.");
     }
 }
