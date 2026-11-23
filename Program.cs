@@ -1,6 +1,19 @@
 ﻿using System.Globalization;
+using System.Text.Json;
 
-var dividends = new List<Dividend>();
+var storage = new DividendStorage();
+List<Dividend> dividends;
+
+// Läs in sparade utdelningar innan menyn visas.
+try
+{
+    dividends = storage.Load();
+}
+catch (Exception ex) when (ex is IOException or UnauthorizedAccessException or JsonException)
+{
+    Console.WriteLine($"Kunde inte läsa sparfilen. {ex.Message}");
+    return;
+}
 
 while (true)
 {
@@ -58,7 +71,15 @@ while (true)
             PaymentDate = paymentDate
         };
 
-        dividends.Add(dividend);
+        var updatedDividends = new List<Dividend>(dividends);
+        updatedDividends.Add(dividend);
+
+        if (!TrySaveDividends(updatedDividends))
+        {
+            continue;
+        }
+
+        dividends = updatedDividends;
         Console.WriteLine("Utdelningen har lagts till.");
     }
     else if (choice == "2")
@@ -123,7 +144,15 @@ while (true)
         }
 
         var selectedDividend = sortedDividends[number - 1];
-        dividends.Remove(selectedDividend);
+        var updatedDividends = new List<Dividend>(dividends);
+        updatedDividends.Remove(selectedDividend);
+
+        if (!TrySaveDividends(updatedDividends))
+        {
+            continue;
+        }
+
+        dividends = updatedDividends;
         Console.WriteLine("Utdelningen har tagits bort.");
     }
     else if (choice == "4" || choice == null)
@@ -133,5 +162,19 @@ while (true)
     else
     {
         Console.WriteLine("Välj 1, 2, 3 eller 4.");
+    }
+}
+
+bool TrySaveDividends(List<Dividend> updatedDividends)
+{
+    try
+    {
+        storage.Save(updatedDividends);
+        return true;
+    }
+    catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+    {
+        Console.WriteLine($"Kunde inte spara ändringen. {ex.Message}");
+        return false;
     }
 }
