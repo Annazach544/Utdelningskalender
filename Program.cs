@@ -21,8 +21,9 @@ while (true)
     Console.WriteLine("1. Lägg till utdelning");
     Console.WriteLine("2. Visa utdelningar");
     Console.WriteLine("3. Ta bort utdelning");
-    Console.WriteLine("4. Avsluta");
-    Console.Write("Välj (1–4): ");
+    Console.WriteLine("4. Ändra utdelning");
+    Console.WriteLine("5. Avsluta");
+    Console.Write("Välj (1–5): ");
 
     var choice = Console.ReadLine();
 
@@ -155,13 +156,138 @@ while (true)
         dividends = updatedDividends;
         Console.WriteLine("Utdelningen har tagits bort.");
     }
-    else if (choice == "4" || choice == null)
+    else if (choice == "4")
+    {
+        if (dividends.Count == 0)
+        {
+            Console.WriteLine("Det finns inga utdelningar att ändra.");
+            continue;
+        }
+
+        var sortedDividends = dividends
+            .OrderBy(dividend => dividend.PaymentDate)
+            .ToList();
+
+        for (int i = 0; i < sortedDividends.Count; i++)
+        {
+            var dividend = sortedDividends[i];
+            Console.WriteLine($"{i + 1}. {dividend.CompanyName} | {dividend.PaymentDate:yyyy-MM-dd}");
+        }
+
+        Console.Write("Ange numret på utdelningen du vill ändra, eller 0 för att avbryta: ");
+
+        if (!int.TryParse(Console.ReadLine(), out int number)
+            || number < 0 || number > sortedDividends.Count)
+        {
+            Console.WriteLine("Ogiltigt nummer.");
+            continue;
+        }
+
+        if (number == 0)
+        {
+            continue;
+        }
+
+        var selectedDividend = sortedDividends[number - 1];
+
+        Console.WriteLine("Tryck Enter för att behålla ett befintligt värde.");
+
+        Console.Write($"Bolagsnamn ({selectedDividend.CompanyName}): ");
+        var companyInput = Console.ReadLine()?.Trim();
+
+        if (companyInput == null)
+        {
+            continue;
+        }
+
+        string companyName = selectedDividend.CompanyName;
+
+        if (companyInput != string.Empty)
+        {
+            companyName = companyInput;
+        }
+
+        Console.Write($"Antal aktier ({selectedDividend.NumberOfShares}): ");
+        var sharesInput = Console.ReadLine()?.Trim();
+        int numberOfShares = selectedDividend.NumberOfShares;
+
+        if (sharesInput == null)
+        {
+            continue;
+        }
+
+        if (sharesInput != string.Empty
+            && (!int.TryParse(sharesInput, out numberOfShares) || numberOfShares <= 0))
+        {
+            Console.WriteLine("Ange ett heltal större än noll.");
+            continue;
+        }
+
+        Console.Write($"Utdelning per aktie ({selectedDividend.DividendPerShare:F2} kr): ");
+        var amountInput = Console.ReadLine()?.Trim();
+        decimal dividendPerShare = selectedDividend.DividendPerShare;
+
+        if (amountInput == null)
+        {
+            continue;
+        }
+
+        if (amountInput != string.Empty
+            && (!decimal.TryParse(amountInput, out dividendPerShare) || dividendPerShare <= 0))
+        {
+            Console.WriteLine("Ange ett belopp större än noll.");
+            continue;
+        }
+
+        Console.Write($"Utbetalningsdatum ({selectedDividend.PaymentDate:yyyy-MM-dd}): ");
+        var dateInput = Console.ReadLine()?.Trim();
+        DateTime paymentDate = selectedDividend.PaymentDate;
+
+        if (dateInput == null)
+        {
+            continue;
+        }
+
+        if (dateInput != string.Empty
+            && !DateTime.TryParseExact(
+                dateInput,
+                "yyyy-MM-dd",
+                CultureInfo.InvariantCulture,
+                DateTimeStyles.None,
+                out paymentDate))
+        {
+            Console.WriteLine("Ange ett giltigt datum i formatet åååå-mm-dd.");
+            continue;
+        }
+
+        // Skapa en ny post så att originalet behålls om sparningen misslyckas.
+        var editedDividend = new Dividend
+        {
+            CompanyName = companyName,
+            NumberOfShares = numberOfShares,
+            DividendPerShare = dividendPerShare,
+            PaymentDate = paymentDate
+        };
+
+        var updatedDividends = new List<Dividend>(dividends);
+        int selectedIndex = dividends.IndexOf(selectedDividend);
+        updatedDividends[selectedIndex] = editedDividend;
+
+        if (!TrySaveDividends(updatedDividends))
+        {
+            continue;
+        }
+
+        dividends = updatedDividends;
+        Console.WriteLine("Utdelningen har ändrats.");
+    }
+    else if (choice == "5" || choice == null)
     {
         break;
     }
     else
     {
-        Console.WriteLine("Välj 1, 2, 3 eller 4.");
+        Console.WriteLine("Välj 1, 2, 3, 4 eller 5.");
     }
 }
 
