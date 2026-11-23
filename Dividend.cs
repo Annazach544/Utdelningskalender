@@ -1,3 +1,4 @@
+// Beskriver en utdelning med bolagsnamn, antal aktier, belopp och datum.
 public class Dividend
 {
     public string CompanyName { get; set; } = string.Empty;

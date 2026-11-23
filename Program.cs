@@ -99,6 +99,7 @@ while (true)
 
         Console.WriteLine("\n=== SUMMA PER MÅNAD ===");
 
+        // Gruppera efter både år och månad och summera varje grupp.
         var months = dividends
             .GroupBy(dividend => new { dividend.PaymentDate.Year, dividend.PaymentDate.Month })
             .OrderBy(month => month.Key.Year)
@@ -270,6 +271,8 @@ while (true)
         };
 
         var updatedDividends = new List<Dividend>(dividends);
+
+        // Hitta postens plats i originallistan efter valet i den sorterade listan.
         int selectedIndex = dividends.IndexOf(selectedDividend);
         updatedDividends[selectedIndex] = editedDividend;
 
@@ -291,6 +294,7 @@ while (true)
     }
 }
 
+// Hantera sparfel och meddela om ändringen kunde sparas.
 bool TrySaveDividends(List<Dividend> updatedDividends)
 {
     try

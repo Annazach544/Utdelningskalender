@@ -1,9 +1,11 @@
 using System.Text.Json;
 
+// Ansvarar för att läsa och spara utdelningar i en JSON-fil.
 public class DividendStorage
 {
     private const string FilePath = "dividends.json";
 
+    // Läser filens innehåll och omvandlar JSON till en lista med utdelningar.
     public List<Dividend> Load()
     {
         try
@@ -19,6 +21,7 @@ public class DividendStorage
         }
     }
 
+    // Omvandlar listan till JSON och sparar den i filen.
     public void Save(List<Dividend> dividends)
     {
         string tempPath = FilePath + ".tmp";
